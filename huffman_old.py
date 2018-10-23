@@ -6,12 +6,6 @@ import heapq
 # h = HuffmanTree([('A', 2), ('B', 7), ('C', 1)])
 # assert(h.encode('ABC') == '01100')
 # assert(h.decode(h.encode('ABC')) == 'ABC')
-
-def BinaryTreeToString(root):
-    if root.symbol is not None: return root.symbol
-    else: return "(%s%s)"%(BinaryTreeToString(root.left), BinaryTreeToString(root.right))
-
-
 class HuffmanTree:
     # Helper object for building the Huffman tree.
     # You may modify this constructor but the grading script rlies on the left, right, and symbol fields.
@@ -39,34 +33,26 @@ class HuffmanTree:
 
             first_tuple, second_tuple = self._get_next_two_nodes(symbol_hpq)
 
-            # print 'first ' + first_tuple[2].min_element
-            # print 'second ' + second_tuple[2].min_element
-
             new_node = self.TreeNode()  # create new node
 
             # isolate nodes from tuple
-            left_node = first_tuple[2]  
-            right_node = second_tuple[2]
+            left_node = first_tuple[1]  
+            right_node = second_tuple[1]
 
             # set left and right for new node
             new_node.left = left_node  
             new_node.right = right_node
             
-            # check to see which has min element (since heap prioritizes first by the weight, 
-            # so could have instance where min element is different)
-            if left_node.min_element < right_node.min_element:
-                new_node.min_element = left_node.min_element
-            else:
-                new_node.min_element = right_node.min_element
+            new_node.min_element = left_node.min_element  # set min element to the left's
 
             new_weight = first_tuple[0] + second_tuple[0]  # combine the weight
                         
-            new_tuple = (new_weight, new_node.min_element, new_node)   # create new tuple
+            new_tuple = (new_weight, new_node)   # create new tuple
 
             heapq.heappush(symbol_hpq, new_tuple)   # push new tuple back into heap
 
         # return the last node 
-        return symbol_hpq[0][2]
+        return symbol_hpq[0][1]
 
     def _get_next_two_nodes(self, heap1):
 
@@ -79,6 +65,60 @@ class HuffmanTree:
         first_tuple = heapq.heappop(heap1)
         second_tuple = heapq.heappop(heap1)
 
+        first_weight = first_tuple[0]
+        second_weight = second_tuple[0]
+
+        # if there are still items in hpq, check to see if they're the same weight as second tuple
+        # of if first and second tuples have same weights, enter if
+        if len(heap1) > 0 and (heap1[0][0] == second_weight or first_weight == second_weight):  
+
+            # store in a second heap, where are the weights are the same
+            # and you sort by the min element this time
+
+            heap2 = []
+            heapq.heapify(heap2)
+
+            # grab just the node
+            first_node = first_tuple[1]
+            second_node = second_tuple[1]
+
+            # create new tuple with min element and tree node
+            first_heap2_tuple = (first_node.min_element, first_weight, first_node)
+            second_heap2_tuple = (second_node.min_element, second_weight, second_node)
+
+            # push the new tuple
+            heapq.heappush(heap2, first_heap2_tuple)
+            heapq.heappush(heap2, second_heap2_tuple)
+
+            # loop through first heap and grab all the same weighted elements
+            while len(heap1) > 0 and heap1[0][0] == second_weight:  # this peeks at the first elem weight
+                heap1_tuple = heapq.heappop(heap1)  # pop from heap1
+                node_weight = heap1_tuple[0]  # get node weight
+                node = heap1_tuple[1]  # get node
+                heap2_tuple = (node.min_element, node_weight, node)  # create heap2 tuple
+                heapq.heappush(heap2, heap2_tuple)  # push to tuple to heap2
+
+            # now grab the min 2 elements from heap2
+            first_from_heap2 = heapq.heappop(heap2)
+            second_from_heap2 = heapq.heappop(heap2)
+
+            # assign the tuples for the return values
+            first_tuple = (first_from_heap2[1], first_from_heap2[2])
+            second_tuple = (second_from_heap2[1], second_from_heap2[2])
+
+            # put the remaining back into the first heap hpq
+            # making sure to use the original weight as first elem in tuple
+            while len(heap2) > 0:
+                remaining_tuple = heapq.heappop(heap2)
+                remaining_node_weight = remaining_tuple[1]
+                remaining_node = remaining_tuple[2]
+
+                insert_tuple = (remaining_node_weight, remaining_node)
+                heapq.heappush(heap1, insert_tuple)
+
+            # print(heap2)
+
+        # return the tuples (weight, node)
         return (first_tuple, second_tuple)
 
 
@@ -90,13 +130,11 @@ class HuffmanTree:
         # run through symbol list, create tree nodes, and add tuples to a heap
         for elem in symbol_list:
             # convert each symbol pair to a treenode
-
-            weight = elem[1]
             new_node = self.TreeNode()
-            new_node.symbol = elem[0]
-            new_node.min_element = elem[0] 
+            new_node.symbol = elem[0]  # set to char
+            new_node.min_element = elem[0]  # set to char
 
-            temp = (weight, new_node.min_element, new_node)  # create a temp tuple with the weight and treenode
+            temp = (elem[1],new_node)  # create a temp tuple with the weight and treenode
             heapq.heappush(li, temp)  # heap push the tuple
 
         return li
@@ -105,9 +143,6 @@ class HuffmanTree:
   # symbol/weight list provided.
     def encode(self, s):
         assert(s is not None)
-
-        if len(s) == 0:
-            return ''
 
         encoded_str = ''
 
@@ -142,9 +177,6 @@ class HuffmanTree:
         assert(encoded_msg is not None)
         # YOUR CODE HERE
 
-        if len(encoded_msg) == 0:
-            return ''
-
         msg_so_far = ''
 
         decoded_msg = self._decode_helper(self.root, encoded_msg, msg_so_far)
@@ -153,56 +185,32 @@ class HuffmanTree:
 
     def _decode_helper(self, root, encoded_msg, msg_so_far):
 
-        # print 'starting encoded msg: ' + encoded_msg
+        # if a leaf node
+        if root.symbol is not None:
+            msg_so_far += root.symbol
+            root = self.root
+  
+       # not a leaf node
+       # check if still have chars in encoded_msg
 
-        while len(encoded_msg) > 0:
-
-            # if leaf node
-            if root.symbol is not None:
-                msg_so_far += root.symbol  # append to msg
-                root = self.root  # restart root from the top
-                # encoded_msg = encoded_msg[1:]  # update the encoded msg
-                # print 'found a leaf node, msg_so_far: ' + msg_so_far
-                # print 'encoded msg inside leaf node: ' +  encoded_msg
-                continue
-
+       # if encoded msg is not empty
+        if len(encoded_msg) > 0:
+        
+            # get the next char
             next_char = encoded_msg[0]
 
+            # if next_char is 0, go left
             if next_char == '0':
-                root = root.left
+                msg_so_far += self._decode_helper(root.left, encoded_msg[1:], msg_so_far)
             elif next_char == '1':
-                root = root.right
-            encoded_msg = encoded_msg[1:]  # update the encoded msg
-            # print 'encoded msg in non leaf node: ' + encoded_msg
-
-        # need to do one more check after while loop
-        if root.symbol is not None:
-            msg_so_far += root.symbol  # append to msg
-        # have leftover str so cant decode
-        else:
-            return None
+                msg_so_far += self._decode_helper(root.right, encoded_msg[1:], msg_so_far)
 
         return msg_so_far
 
-# # testing
-
-# a = ['j','e','F','h','Z','x','w','Y','X','q','A','i','I','l','z','O','v','o','V','G','n','E','T','B','L']
-# b = [13,10,9,15,5,8,1,7,5,2,12,6,14,3,8,7,5,5,5,9,12,9,14,2,5]
-# c = zip(a,b)
-
-# a = [('A',3),('B',5),('C',2)]
-
-
-# h = HuffmanTree(a)
-# ans = BinaryTreeToString(h.root)
-# print ans
-
-# assert(ans=='((((EF)(G(LV)))(((XZ)e)((ov)A)))(((n(iO))(jI))((T(Y(l(q(wB)))))(h(xz)))))')
-# ((((EF)(G(LV)))(((XZ)e)((ov)A)))(((n(iO))(jI))((T(Y(l(q(wB)))))(h(xz)))))
-# ((((EF)(G(LV)))(((XZ)e)((ov)j)))(((An)((((Bq)(wl))i)I))(((OY)T)(h(xz)))))
-
-# encoded = h.encode('ABC')
-# decoded = h.decode('10110')
-# print 'encoded msg at beginning ' + encoded
-# print decoded
+# testing
+h = HuffmanTree([('A', 1), ('B', 1), ('C', 1)])
+encoded = h.encode('ABC')
+decoded = h.decode('10110')
+print encoded
+print decoded
 

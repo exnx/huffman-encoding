@@ -28,7 +28,7 @@ if __name__ == "__main__":
       h = HuffmanTree(list(zip(symbols, weights)))
       assert(BinaryTreeToString(h.root) == tree)
       assert(h.encode(encode_input) == encode_output)
-      # assert(h.decode(decode_input) == decode_output)
+      assert(h.decode(decode_input) == decode_output)
     except:
       print("Failed test %s"%testname)
       break
