@@ -36,6 +36,4 @@ class BoyerMooreMajority:
 # for elem in l:
 #   b.add_next_element(elem)
 
-
-
-print b.get_majority()
+# print b.get_majority()
