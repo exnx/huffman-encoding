@@ -14,12 +14,15 @@ class BoyerMooreMajority:
   def add_next_element(self, element):
     assert(element is not None)
 
+    # if counter is 0, set the guess to the element
     if self.counter == 0:
       self.guess = element
 
+    # if counter not 0, there's a current guess, update its count
+    # based on what the element is
     if element == self.guess:
-      self.counter += 1
-    else:
+      self.counter += 1  # increase if matched
+    else:  # decreased if not matched
       self.counter -= 1
 
   # Gives the best guess of which of the elements seen so far make up the
@@ -27,7 +30,7 @@ class BoyerMooreMajority:
   # this algorithm will report it correctly. Otherwise, there is no guarantee
   # about the output.
   def get_majority(self):
-    return self.guess
+    return self.guess  # return the current guess
 
 
 # l = [2, 2, 2, 4, 5, 5, 2, 2, 3]
