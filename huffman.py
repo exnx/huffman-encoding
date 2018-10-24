@@ -237,25 +237,3 @@ class HuffmanTree:
         # return the decoded message
         return msg_so_far
 
-# # testing
-
-# a = ['j','e','F','h','Z','x','w','Y','X','q','A','i','I','l','z','O','v','o','V','G','n','E','T','B','L']
-# b = [13,10,9,15,5,8,1,7,5,2,12,6,14,3,8,7,5,5,5,9,12,9,14,2,5]
-# c = zip(a,b)
-
-# a = [('A',3),('B',5),('C',2)]
-
-
-# h = HuffmanTree(a)
-# ans = BinaryTreeToString(h.root)
-# print ans
-
-# assert(ans=='((((EF)(G(LV)))(((XZ)e)((ov)A)))(((n(iO))(jI))((T(Y(l(q(wB)))))(h(xz)))))')
-# ((((EF)(G(LV)))(((XZ)e)((ov)A)))(((n(iO))(jI))((T(Y(l(q(wB)))))(h(xz)))))
-# ((((EF)(G(LV)))(((XZ)e)((ov)j)))(((An)((((Bq)(wl))i)I))(((OY)T)(h(xz)))))
-
-# encoded = h.encode('ABC')
-# decoded = h.decode('10110')
-# print 'encoded msg at beginning ' + encoded
-# print decoded
-
